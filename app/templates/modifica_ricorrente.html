@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Modifica Regola Ricorrente{% endblock %}
+{% block content %}
+    <h2>Modifica Regola Ricorrente</h2>
+    <form method="POST">
+        <div class="mb-3">
+            <label for="descrizione" class="form-label">Descrizione</label>
+            <input type="text" class="form-control" name="descrizione" value="{{ regola.descrizione }}" required>
+        </div>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="importo" class="form-label">Importo</label>
+                <input type="number" step="0.01" class="form-control" name="importo" value="{{ regola.importo }}" required min="0" placeholder="Es. 500.00">
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="tipo" class="form-label">Tipo</label>
+                <select class="form-select" name="tipo">
+                    <option value="uscita" {% if regola.tipo == 'uscita' %}selected{% endif %}>Uscita</option>
+                    <option value="entrata" {% if regola.tipo == 'entrata' %}selected{% endif %}>Entrata</option>
+                </select>
+            </div>
+        </div>
+        <div class="mb-3">
+            <label for="frequenza" class="form-label">Frequenza</label>
+            <select class="form-select" name="frequenza">
+                <option value="WEEKLY" {% if regola.frequenza == 'WEEKLY' %}selected{% endif %}>Settimanale</option>
+                <option value="MONTHLY" {% if regola.frequenza == 'MONTHLY' %}selected{% endif %}>Mensile</option>
+                <option value="QUARTERLY" {% if regola.frequenza == 'QUARTERLY' %}selected{% endif %}>Trimestrale</option>
+                <option value="SEMIANNUALLY" {% if regola.frequenza == 'SEMIANNUALLY' %}selected{% endif %}>Semestrale</option>
+                <option value="ANNUALLY" {% if regola.frequenza == 'ANNUALLY' %}selected{% endif %}>Annuale</option>
+            </select>
+        </div>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="data_inizio" class="form-label">Data Inizio</label>
+                <input type="date" class="form-control" name="data_inizio" value="{{ regola.data_inizio.strftime('%Y-%m-%d') }}" required>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="data_fine" class="form-label">Data Fine (opzionale)</label>
+                <input type="date" class="form-control" name="data_fine" value="{{ regola.data_fine.strftime('%Y-%m-%d') if regola.data_fine }}">
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Salva Modifiche</button>
+        <a href="{{ url_for('lista_ricorrenti') }}" class="btn btn-secondary">Annulla</a>
+    </form>
+{% endblock %}

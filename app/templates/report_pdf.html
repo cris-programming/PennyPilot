@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Riepilogo Finanziario</title>
+    <style>
+      @page {
+        size: A4;
+        margin: 1.5cm;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, sans-serif;
+        color: #333;
+        font-size: 10pt;
+      }
+      h1 {
+        text-align: center;
+        color: #0d6efd;
+        margin-bottom: 0;
+      }
+      h2 {
+        text-align: center;
+        color: #555;
+        margin-top: 5px;
+        font-weight: normal;
+        border-bottom: 2px solid #eee;
+        padding-bottom: 10px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+      th,
+      td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+      }
+      th {
+        background-color: #f8f9fa;
+        font-weight: bold;
+      }
+      tr:nth-child(even) {
+        background-color: #fdfdff;
+      }
+      .text-end {
+        text-align: right;
+      }
+      .text-success {
+        color: #198754;
+      }
+      .text-danger {
+        color: #dc3545;
+      }
+      .summary-table {
+        margin-top: 30px;
+        width: 50%;
+        margin-left: auto;
+        margin-right: 0;
+        border: none;
+      }
+      .summary-table td {
+        font-weight: bold;
+        border: none;
+        padding: 5px 8px;
+      }
+      .summary-table tr:nth-child(even) {
+        background-color: transparent;
+      }
+      .summary-table tr:last-child td {
+        border-top: 2px solid #ccc;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Riepilogo Finanziario</h1>
+    <h2>
+      {% if nome_mese %}{{ nome_mese }} {{ anno }}{% else %}Anno {{ anno }}{%
+      endif %}
+    </h2>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Descrizione</th>
+          <th>Categoria</th>
+          <th class="text-end">Importo</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in elenco %}
+        <tr>
+          <td>{{ t.data.strftime('%d/%m/%Y') }}</td>
+          <td>{{ t.descrizione }}</td>
+          <td>{{ t.categoria.nome if t.categoria else '' }}</td>
+          <td
+            class="text-end {% if t.tipo == 'entrata' %}text-success{% else %}text-danger{% endif %}"
+          >
+            {% if t.tipo == 'entrata' %}+{% else %}-{% endif %} €{{
+            "%.2f"|format(t.importo) }}
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="4" style="text-align: center">
+            Nessuna transazione in questo periodo.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <table class="summary-table">
+      <tr>
+        <td>Totale Entrate:</td>
+        <td class="text-end text-success">€{{ "%.2f"|format(tot_entrate) }}</td>
+      </tr>
+      <tr>
+        <td>Totale Uscite:</td>
+        <td class="text-end text-danger">€{{ "%.2f"|format(tot_uscite) }}</td>
+      </tr>
+      <tr>
+        <td>Saldo Finale Periodo:</td>
+        <td class="text-end">€{{ "%.2f"|format(saldo_finale) }}</td>
+      </tr>
+    </table>
+  </body>
+</html>

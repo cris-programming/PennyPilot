@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Transazioni Ricorrenti{% endblock %}
+{% block content %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Regole Ricorrenti</h2>
+        <a href="{{ url_for('aggiungi_ricorrente') }}" class="btn btn-primary">Aggiungi Regola</a>
+    </div>
+    <p class="text-muted">Queste sono le regole che generano automaticamente le transazioni previste nel tempo.</p>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>Descrizione</th>
+                    <th>Importo</th>
+                    <th>Tipo</th>
+                    <th>Frequenza</th>
+                    <th>Inizia il</th>
+                    <th>Termina il</th>
+                    <th class="text-end">Azioni</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in elenco %}
+                <tr>
+                    <td>{{ r.descrizione }}</td>
+                    <td>€ {{ "%.2f"|format(r.importo) }}</td>
+                    <td><span class="badge {% if r.tipo == 'entrata' %}bg-success-subtle border border-success-subtle text-success-emphasis{% else %}bg-danger-subtle border border-danger-subtle text-danger-emphasis{% endif %}">{{ r.tipo|capitalize }}</span></td>
+                    <td>{{ r.frequenza|capitalize }}</td>
+                    <td>{{ r.data_inizio.strftime('%d/%m/%Y') }}</td>
+                    <td>{{ r.data_fine.strftime('%d/%m/%Y') if r.data_fine else 'N/D' }}</td>
+                    <td class="text-end">
+                        {% if r.data_fine %}
+    <form action="{{ url_for('rinnova_ricorrente', regola_id=r.id) }}" method="POST" class="d-inline me-1">
+        <button type="submit" class="btn btn-sm btn-outline-success">Rinnova 1 Anno</button>
+    </form>
+    {% endif %}
+    
+    <a href="{{ url_for('modifica_ricorrente', regola_id=r.id) }}" class="btn btn-sm btn-outline-primary me-1">Modifica</a>
+    
+    <form action="{{ url_for('elimina_ricorrente', regola_id=r.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Sei sicuro di voler eliminare questa regola?');">
+        <button type="submit" class="btn btn-sm btn-outline-danger">Elimina</button>
+    </form>
+</td>
+    
+</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="7" class="text-center">Nessuna regola ricorrente definita.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

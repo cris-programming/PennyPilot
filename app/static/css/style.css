@@ -1,0 +1,134 @@
+:root {
+    --sidebar-bg-color: #0d6efd; /* Blu primario di Bootstrap */
+    --sidebar-icon-color: #ffffff;
+    --sidebar-text-color: #ffffff;
+    --sidebar-hover-bg: #0b5ed7;
+    --sidebar-width-collapsed: 80px;
+    --sidebar-width-expanded: 250px;
+}
+
+body {
+    padding-left: var(--sidebar-width-collapsed);
+    transition: padding-left 0.3s ease-in-out;
+}
+
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: var(--sidebar-width-collapsed);
+    background-color: var(--sidebar-bg-color);
+    transition: width 0.3s ease-in-out;
+    overflow: hidden;
+    z-index: 1030;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Stile quando la sidebar è espansa su desktop */
+body.sidebar-expanded {
+    padding-left: var(--sidebar-width-expanded);
+}
+
+.sidebar:hover {
+    width: var(--sidebar-width-expanded);
+}
+
+.sidebar-nav {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    margin-top: 20px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar-nav-item a {
+    display: flex;
+    align-items: center;
+    height: 50px;
+    color: var(--sidebar-text-color);
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.sidebar-nav-item a:hover {
+    background-color: var(--sidebar-hover-bg);
+}
+
+.sidebar-nav-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: var(--sidebar-width-collapsed);
+    font-size: 1.5rem;
+}
+
+.sidebar-nav-text {
+    padding-left: 10px;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.sidebar:hover .sidebar-nav-text {
+    opacity: 1;
+    transition: opacity 0.2s 0.1s;
+}
+
+.sidebar-header {
+    height: 60px;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.sidebar-header .sidebar-nav-text {
+    font-size: 1.2rem;
+}
+
+.main-content {
+    transition: margin-left 0.3s ease-in-out;
+    padding: 1.5rem;
+}
+
+/* Stili per l'overlay mobile */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1029;
+}
+
+body.sidebar-mobile-show .sidebar-overlay {
+    display: block;
+}
+
+/* Stili specifici per mobile */
+@media (max-width: 992px) {
+    body {
+        padding-left: 0;
+    }
+    .sidebar {
+        width: var(--sidebar-width-expanded);
+        left: calc(-1 * var(--sidebar-width-expanded));
+        transition: left 0.3s ease-in-out;
+    }
+    body.sidebar-mobile-show .sidebar {
+        left: 0;
+    }
+    .main-content {
+        margin-left: 0;
+        width: 100%;
+    }
+    /* --- LA NUOVA REGOLA CORRETTIVA --- */
+    /* Quando il menu mobile è aperto, mostra subito il testo */
+    body.sidebar-mobile-show .sidebar-nav-text {
+        opacity: 1;
+        transition: none; /* Rimuove l'animazione di ritardo */
+    }
+}

@@ -1,0 +1,56 @@
+{% extends "base.html" %} {% block title %}Aggiungi Regola Ricorrente{% endblock
+%} {% block content %}
+<h2>Nuova Regola Ricorrente</h2>
+<form method="POST">
+  <div class="mb-3">
+    <label for="descrizione" class="form-label"
+      >Descrizione (es. Affitto, Netflix)</label
+    >
+    <input type="text" class="form-control" name="descrizione" required />
+  </div>
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <label for="importo" class="form-label">Importo</label>
+      <input
+        type="number"
+        step="0.01"
+        class="form-control"
+        name="importo"
+        required
+        min="0"
+        placeholder="Es. 500.00"
+      />
+    </div>
+    <div class="col-md-6 mb-3">
+      <label for="tipo" class="form-label">Tipo</label>
+      <select class="form-select" name="tipo">
+        <option value="uscita">Uscita</option>
+        <option value="entrata">Entrata</option>
+      </select>
+    </div>
+  </div>
+  <div class="mb-3">
+    <label for="frequenza" class="form-label">Frequenza</label>
+    <select class="form-select" name="frequenza">
+      <option value="WEEKLY">Settimanale</option>
+      <option value="MONTHLY">Mensile</option>
+      <option value="QUARTERLY">Trimestrale</option>
+      <option value="SEMIANNUALLY">Semestrale</option>
+      <option value="ANNUALLY">Annuale</option>
+    </select>
+  </div>
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <label for="data_inizio" class="form-label">Data Inizio</label>
+      <input type="date" class="form-control" name="data_inizio" required />
+    </div>
+    <div class="col-md-6 mb-3">
+      <label for="data_fine" class="form-label"
+        >Data Fine (lasciare vuoto per non avere una fine)</label
+      >
+      <input type="date" class="form-control" name="data_fine" />
+    </div>
+  </div>
+  <button type="submit" class="btn btn-primary">Aggiungi Regola</button>
+</form>
+{% endblock %}

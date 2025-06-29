@@ -1,0 +1,111 @@
+{% extends "base.html" %} {% block title %}Analisi Approfondita{% endblock %} {%
+block content %}
+<h2 class="mb-4">Analisi Storica (Ultimi 12 Mesi)</h2>
+
+<div class="row mb-4">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">Flusso di Cassa Mensile (Entrate vs Uscite)</div>
+      <div class="card-body">
+        <div class="position-relative" style="height: 350px">
+          <canvas id="graficoFlussoCassa"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-lg-6 mb-4">
+    <div class="card h-100">
+      <div class="card-header">Andamento Patrimonio</div>
+      <div class="card-body">
+        <div class="position-relative" style="height: 300px">
+          <canvas id="graficoAndamentoPatrimonio"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6 mb-4">
+    <div class="card h-100">
+      <div class="card-header">Andamento Spese per Categoria</div>
+      <div class="card-body">
+        <div class="position-relative" style="height: 300px">
+          <canvas id="graficoSpeseCategorie"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const labels = {{ storico_labels|tojson }};
+  const numeroMesiStorico = 13;
+
+  // 1. GRAFICO FLUSSO DI CASSA (aggiornato per 13+1 barre)
+  const ctxFlussoCassa = document.getElementById('graficoFlussoCassa');
+
+  const coloreEntrate = 'rgba(75, 192, 192, 0.7)';
+  const coloreUscite = 'rgba(255, 99, 132, 0.7)';
+  const coloreEntratePrev = 'rgba(75, 192, 192, 0.3)';
+  const coloreUscitePrev = 'rgba(255, 99, 132, 0.3)';
+
+  // Crea un array di 13 colori standard e aggiungi il colore di previsione
+  let coloriBgEntrate = Array(numeroMesiStorico).fill(coloreEntrate);
+  coloriBgEntrate.push(coloreEntratePrev);
+
+  let coloriBgUscite = Array(numeroMesiStorico).fill(coloreUscite);
+  coloriBgUscite.push(coloreUscitePrev);
+
+  new Chart(ctxFlussoCassa, {
+      type: 'bar',
+      data: {
+          labels: labels, // Usa tutte le 14 etichette
+          datasets: [
+              {
+                  label: 'Entrate',
+                  data: {{ storico_entrate_mensili|tojson }},
+                  backgroundColor: coloriBgEntrate,
+              },
+              {
+                  label: 'Uscite',
+                  data: {{ storico_uscite_mensili|tojson }},
+                  backgroundColor: coloriBgUscite,
+              }
+          ]
+      },
+      options: {
+          responsive: true, maintainAspectRatio: false,
+          scales: { x: { stacked: false }, y: { stacked: false } }
+      }
+  });
+
+  // 2. GRAFICO PATRIMONIO (aggiornato per 13 mesi storici)
+  const ctxAndamento = document.getElementById('graficoAndamentoPatrimonio');
+  new Chart(ctxAndamento, {
+      type: 'line',
+      data: {
+          labels: labels.slice(0, numeroMesiStorico), // Mostra solo i 13 mesi storici
+          datasets: [{
+              label: 'Saldo a fine mese',
+              data: {{ storico_dati_saldo|tojson }},
+              fill: true, borderColor: 'rgb(54, 162, 235)',
+              backgroundColor: 'rgba(54, 162, 235, 0.2)', tension: 0.1
+          }]
+      },
+      options: { responsive: true, maintainAspectRatio: false }
+  });
+
+  // 3. GRAFICO SPESE PER CATEGORIA (aggiornato per 13 mesi storici)
+  const ctxSpeseCat = document.getElementById('graficoSpeseCategorie');
+  new Chart(ctxSpeseCat, {
+      type: 'line',
+      data: {
+          labels: labels.slice(0, numeroMesiStorico), // Mostra solo i 13 mesi storici
+          datasets: {{ storico_categorie_datasets|tojson }}
+      },
+      options: { responsive: true, maintainAspectRatio: false }
+  });
+</script>
+{% endblock %}

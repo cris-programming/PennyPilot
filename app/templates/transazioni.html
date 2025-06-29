@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}Archivio Transazioni{% endblock %}
+{% block content %}
+    <h2 class="mb-4">Archivio Transazioni</h2>
+
+    <div class="card bg-light mb-4">
+        <div class="card-body">
+            <form method="GET" action="{{ url_for('lista_transazioni') }}">
+                <div class="row g-3 align-items-end">
+                    <div class="col-lg-4">
+                        <label for="q" class="form-label">Cerca per descrizione</label>
+                        <input type="text" class="form-control" id="q" name="q" value="{{ query_ricerca or '' }}" placeholder="Es. Netflix, Stipendio...">
+                    </div>
+                    <div class="col-lg-2 col-md-4">
+                        <label for="anno" class="form-label">Anno</label>
+                        <select class="form-select" id="anno" name="anno">
+                            <option value="tutti" {% if anno_selezionato == 'tutti' %}selected{% endif %}>Tutti</option>
+                            {% for anno in anni %}
+                                <option value="{{ anno }}" {% if anno == anno_selezionato %}selected{% endif %}>{{ anno }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-lg-2 col-md-4">
+                        <label for="tipo" class="form-label">Tipo</label>
+                        <select class="form-select" id="tipo" name="tipo">
+                            <option value="tutte" {% if tipo_selezionato == 'tutte' %}selected{% endif %}>Tutti</option>
+                            <option value="uscita" {% if tipo_selezionato == 'uscita' %}selected{% endif %}>Uscite</option>
+                            <option value="entrata" {% if tipo_selezionato == 'entrata' %}selected{% endif %}>Entrate</option>
+                        </select>
+                    </div>
+                    <div class="col-lg-2 col-md-4">
+                        <label for="categoria_id" class="form-label">Categoria</label>
+                        <select class="form-select" id="categoria_id" name="categoria_id">
+                            <option value="tutte" {% if categoria_selezionata == 'tutte' %}selected{% endif %}>Tutte</option>
+                            {% for cat in categorie %}
+                                <option value="{{ cat.id }}" {% if cat.id == categoria_selezionata %}selected{% endif %}>{{ cat.nome }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-lg-2 col-md-12">
+                        <button type="submit" class="btn btn-primary w-100">Filtra</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr>
+                    <th scope="col">Data</th>
+                    <th scope="col">Descrizione</th>
+                    <th scope="col">Categoria</th>
+                    <th scope="col" class="text-end">Importo</th>
+                    <th scope="col" class="text-end">Azioni</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in elenco %}
+                <tr class="{% if t.data > today %}table-light text-muted{% endif %}">
+                    <td class="text-nowrap">{{ t.data.strftime('%d/%m/%Y') }}</td>
+                    <td>
+                        {{ t.descrizione }}
+                        {% if t.id is string %}<span class="badge bg-info-subtle border text-info-emphasis rounded-pill fw-normal">Ricorrente</span>{% endif %}
+                    </td>
+                    <td>
+                        {% if t.categoria %}<span class="badge bg-secondary-subtle border text-secondary-emphasis rounded-pill fw-normal">{{t.categoria.nome}}</span>{% endif %}
+                    </td>
+                    <td class="text-end text-nowrap {% if t.tipo == 'entrata' %}text-success{% else %}text-danger{% endif %}">
+                        {% if t.tipo == 'entrata' %}+{% else %}-{% endif %} €{{ "%.2f"|format(t.importo) }}
+                    </td>
+                    <td class="text-end">
+                        {% if t.id is string %}
+                            <small class="text-muted fst-italic">Virtuale</small>
+                        {% else %}
+                            <a href="{{ url_for('modifica_transazione', transazione_id=t.id) }}" class="btn btn-sm btn-outline-primary me-1">Modifica</a>
+                            <form action="{{ url_for('elimina_transazione', transazione_id=t.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Sei sicuro di voler eliminare questa transazione?');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Elimina</button>
+                            </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="text-center py-4">
+                        <p class="mb-0">Nessuna transazione trovata con i filtri attuali.</p>
+                        <a href="{{ url_for('lista_transazioni') }}">Rimuovi tutti i filtri</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+{% block title %}Riepilogo Annuale{% endblock %}
+{% block content %}
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+        <h2>Riepilogo per l'anno {{ anno_selezionato }}</h2>
+        <div class="d-flex align-items-center gap-3">
+            <form id="year-selector-form" method="GET" class="d-flex align-items-center">
+                <label for="year" class="form-label me-2 mb-0">Anno:</label>
+                <select class="form-select" id="year" onchange="window.location.href = '/riepilogo/' + this.value;">
+                    {% for anno in anni %}
+                        <option value="{{ anno }}" {% if anno == anno_selezionato %}selected{% endif %}>{{ anno }}</option>
+                    {% endfor %}
+                </select>
+            </form>
+            <div class="btn-group">
+                <a href="{{ url_for('esporta_csv', anno=anno_selezionato) }}" class="btn btn-outline-success">Esporta CSV Annuale</a>
+                <a href="{{ url_for('esporta_pdf', anno=anno_selezionato) }}" class="btn btn-outline-danger" target="_blank" rel="noopener noreferrer">Esporta PDF Annuale</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-7 mb-4">
+            <div class="card h-100">
+                <div class="card-header">Dettaglio Mensile (clicca su un mese per i dettagli)</div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Mese</th>
+                                    <th class="text-end">Entrate</th>
+                                    <th class="text-end">Uscite</th>
+                                    <th class="text-end">Saldo Mensile</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for mese in dati_mensili %}
+                                <tr data-bs-toggle="modal" data-bs-target="#dettaglioMeseModal-{{ mese.numero_mese }}" style="cursor: pointer;">
+                                    <td><strong>{{ mese.nome_mese }}</strong></td>
+                                    <td class="text-end text-success">+ €{{ "%.2f"|format(mese.entrate) }}</td>
+                                    <td class="text-end text-danger">- €{{ "%.2f"|format(mese.uscite) }}</td>
+                                    <td class="text-end {% if mese.saldo >= 0 %}text-success-emphasis{% else %}text-danger-emphasis{% endif %}">
+                                        <strong>€{{ "%.2f"|format(mese.saldo) }}</strong>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-5 mb-4">
+            <div class="card h-100">
+                <div class="card-header">Spese per Categoria (Anno {{ anno_selezionato }})</div>
+                <div class="card-body d-flex align-items-center justify-content-center">
+                    {% if spese_anno_per_categoria %}
+                    <div class="position-relative" style="height:350px; width:100%">
+                         <canvas id="graficoAnnualeCategorie"></canvas>
+                    </div>
+                    {% else %}
+                    <p class="text-muted">Nessuna spesa categorizzata per questo anno.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% for mese in dati_mensili %}
+<div class="modal fade" id="dettaglioMeseModal-{{ mese.numero_mese }}" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Dettaglio per {{ mese.nome_mese }} {{ anno_selezionato }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+            <div class="col-lg-7">
+                <h6 class="mb-3">Elenco Transazioni</h6>
+                <div class="table-responsive" style="max-height: 400px;">
+                    <table class="table table-sm table-striped">
+                        <thead>
+                            <tr><th>Data</th><th>Descrizione</th><th class="text-end">Importo</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for t in mese.transazioni %}
+                            <tr>
+                                <td class="text-nowrap">{{ t.data.strftime('%d/%m/%Y') }}</td>
+                                <td>
+                                    {{ t.descrizione }} 
+                                    {% if t.categoria %}<span class="badge bg-secondary-subtle border text-secondary-emphasis rounded-pill fw-normal">{{t.categoria.nome}}</span>{% endif %}
+                                    {% if t.id is string %}<span class="badge bg-info-subtle border text-info-emphasis rounded-pill fw-normal">Ricorrente</span>{% endif %}
+                                </td>
+                                <td class="text-end text-nowrap {% if t.tipo == 'entrata' %}text-success{% else %}text-danger{% endif %}">
+                                    {% if t.tipo == 'entrata' %}+{% else %}-{% endif %} €{{ "%.2f"|format(t.importo) }}
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="3" class="text-center">Nessuna transazione per questo mese.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="col-lg-5 d-flex flex-column align-items-center">
+                <h6 class="mb-3">Spese per Categoria</h6>
+                {% if mese.spese_per_categoria %}
+                <div class="position-relative w-100" style="min-height:300px">
+                    <canvas id="graficoCategoriaMese-{{ mese.numero_mese }}" 
+                            data-labels='{{ mese.spese_per_categoria.keys()|list|tojson }}'
+                            data-values='{{ mese.spese_per_categoria.values()|list|tojson }}'></canvas>
+                </div>
+                {% else %}
+                <div class="flex-grow-1 d-flex align-items-center justify-content-center">
+                    <p class="text-muted">Nessuna spesa categorizzata.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <a href="{{ url_for('esporta_csv_mensile', anno=anno_selezionato, mese=mese.numero_mese) }}" class="btn btn-success">Esporta CSV Mese</a>
+        <a href="{{ url_for('esporta_pdf_mensile', anno=anno_selezionato, mese=mese.numero_mese) }}" class="btn btn-danger" target="_blank" rel="noopener noreferrer">Esporta PDF Mese</a>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Chiudi</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// --- SCRIPT PER IL GRAFICO ANNUALE ---
+{% if spese_anno_per_categoria %}
+const ctxAnnuale = document.getElementById('graficoAnnualeCategorie');
+new Chart(ctxAnnuale, {
+    type: 'pie',
+    data: {
+        labels: {{ spese_anno_per_categoria.keys()|list|tojson }},
+        datasets: [{
+            data: {{ spese_anno_per_categoria.values()|list|tojson }},
+            backgroundColor: ['rgba(255, 99, 132, 0.8)', 'rgba(54, 162, 235, 0.8)', 'rgba(255, 206, 86, 0.8)', 'rgba(75, 192, 192, 0.8)', 'rgba(153, 102, 255, 0.8)', 'rgba(255, 159, 64, 0.8)', 'rgba(40, 167, 69, 0.8)', 'rgba(23, 162, 184, 0.8)'],
+            hoverOffset: 4
+        }]
+    },
+    options: { responsive: true, maintainAspectRatio: false }
+});
+{% endif %}
+
+// --- SCRIPT PER I GRAFICI MENSILI NEI MODAL ---
+const DettaglioModals = document.querySelectorAll('[id^="dettaglioMeseModal-"]');
+let activeChart = null;
+DettaglioModals.forEach(modal => {
+    modal.addEventListener('show.bs.modal', function (event) {
+        const canvas = modal.querySelector('canvas');
+        if (!canvas || !canvas.dataset.labels) return;
+        const labels = JSON.parse(canvas.dataset.labels);
+        const values = JSON.parse(canvas.dataset.values);
+        if (activeChart) { activeChart.destroy(); }
+        activeChart = new Chart(canvas, {
+            type: 'doughnut',
+            data: { labels: labels, datasets: [{ data: values, backgroundColor: ['rgba(255, 99, 132, 0.8)', 'rgba(54, 162, 235, 0.8)', 'rgba(255, 206, 86, 0.8)', 'rgba(75, 192, 192, 0.8)', 'rgba(153, 102, 255, 0.8)', 'rgba(255, 159, 64, 0.8)'] }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } } }
+        });
+    });
+    modal.addEventListener('hide.bs.modal', function (event) {
+        if (activeChart) { activeChart.destroy(); activeChart = null; }
+    });
+});
+</script>
+{% endblock %}

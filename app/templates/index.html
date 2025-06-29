@@ -1,0 +1,128 @@
+{% extends "base.html" %} {% block title %}Dashboard Finanziaria{% endblock %}
+{% block content %}
+<div class="row">
+  <div class="col-lg-4 mb-3">
+    <div class="card text-white bg-success h-100">
+      <div class="card-header">Saldo Attuale</div>
+      <div class="card-body">
+        <h4 class="card-title">€ {{ "%.2f"|format(saldo_attuale) }}</h4>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4 mb-3">
+    <div class="card text-dark bg-warning h-100">
+      <div class="card-header">Saldo Previsto a Fine Mese</div>
+      <div class="card-body">
+        <h4 class="card-title">€ {{ "%.2f"|format(saldo_fine_mese) }}</h4>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4 mb-3">
+    <div class="card text-white bg-danger h-100">
+      <div class="card-header">
+        Spese Previste ({{ prossimo_mese_info.nome }})
+      </div>
+      <div class="card-body">
+        <h4 class="card-title">
+          € {{ "%.2f"|format(prossimo_mese_info.spese) }}
+        </h4>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row mt-4">
+  <div class="col-lg-6 mb-4">
+    <div class="card h-100">
+      <div class="card-header">Riepilogo Totale (Fino ad Oggi)</div>
+      <div class="card-body">
+        <div class="position-relative" style="height: 250px">
+          <canvas id="graficoTortaCompleto"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6 mb-4">
+    <div class="card h-100">
+      <div class="card-header">
+        Riepilogo Mese di {{ dati_grafici.mese_corrente.nome_mese }}
+      </div>
+      <div class="card-body">
+        <div class="position-relative" style="height: 250px">
+          <canvas id="graficoTortaMese"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row mt-4">
+  <div class="col">
+    <div class="d-flex justify-content-between align-items-center">
+      <h3>Ultime Transazioni Singole Inserite</h3>
+      <a
+        href="{{ url_for('lista_transazioni') }}"
+        class="btn btn-sm btn-outline-primary"
+        >Vedi tutte</a
+      >
+    </div>
+    <ul class="list-group mt-2">
+      {% for t in transazioni %}
+      <li
+        class="list-group-item d-flex justify-content-between align-items-center"
+      >
+        <span>
+          {{ t.descrizione }}
+          <small class="text-muted"> ({{ t.data.strftime('%d/%m/%Y') }})</small>
+        </span>
+        <span
+          class="badge {% if t.tipo == 'entrata' %}bg-success{% else %}bg-danger{% endif %} rounded-pill fs-6"
+        >
+          {% if t.tipo == 'entrata' %}+{% else %}-{% endif %} €{{
+          "%.2f"|format(t.importo) }}
+        </span>
+      </li>
+      {% else %}
+      <li class="list-group-item">Nessuna transazione inserita.</li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const commonOptions = { responsive: true, maintainAspectRatio: false };
+  const commonColors = {
+      entrate: 'rgba(25, 135, 84, 0.8)',
+      uscite: 'rgba(220, 53, 69, 0.8)',
+  };
+
+  // Grafico Torta Completo
+  const ctxTortaCompleto = document.getElementById('graficoTortaCompleto');
+  new Chart(ctxTortaCompleto, {
+      type: 'pie',
+      data: {
+          labels: ['Entrate Totali', 'Uscite Totali'],
+          datasets: [{
+              data: [{{ dati_grafici.completo.entrate }}, {{ dati_grafici.completo.uscite }}],
+              backgroundColor: [commonColors.entrate, commonColors.uscite],
+          }]
+      },
+      options: commonOptions
+  });
+
+  // Grafico Torta Mese Corrente
+  const ctxTortaMese = document.getElementById('graficoTortaMese');
+  new Chart(ctxTortaMese, {
+      type: 'pie',
+      data: {
+          labels: ['Entrate del Mese', 'Uscite del Mese'],
+          datasets: [{
+              data: [{{ dati_grafici.mese_corrente.entrate }}, {{ dati_grafici.mese_corrente.uscite }}],
+              backgroundColor: [commonColors.entrate, commonColors.uscite],
+          }]
+      },
+      options: commonOptions
+  });
+</script>
+{% endblock %}
